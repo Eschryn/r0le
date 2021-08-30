@@ -1,7 +1,7 @@
 use std::{sync::{Arc, atomic::{AtomicUsize, Ordering}}, time::Duration};
 
 use futures::{StreamExt, future::{self, AbortHandle, Abortable}};
-use serenity::{builder::CreateEmbed, framework::standard::{Args, CommandResult, macros::command}, model::prelude::*, prelude::*};
+use serenity::{builder::CreateEmbed, framework::standard::{Args, CommandResult, macros::command}, model::{interactions::message_component::ButtonStyle, prelude::*}, prelude::*};
 
 use crate::data::{RedisReactionRoleStore, ReactionRoleStore};
 
@@ -98,30 +98,28 @@ async fn setup(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
                 .message_id(rep.id.0)
                 .then(|a| async { 
                     if let Some(interaction) = a {
-                        if let Some(InteractionData::MessageComponent(ref mc)) = interaction.data {
-                            return match mc.custom_id.parse().unwrap() {
-                                CANCEL => {
-                                    interaction.create_interaction_response(ctx, |cir| {
-                                        cir.kind(InteractionResponseType::DeferredUpdateMessage)
-                                    }).await.unwrap();
+                        return match interaction.data.custom_id.parse().unwrap() {
+                            CANCEL => {
+                                interaction.create_interaction_response(ctx, |cir| {
+                                    cir.kind(InteractionResponseType::DeferredUpdateMessage)
+                                }).await.unwrap();
 
-                                    true
-                                },
-                                SKIP => {
-                                    cnt.fetch_add(1, Ordering::Relaxed);
+                                true
+                            },
+                            SKIP => {
+                                cnt.fetch_add(1, Ordering::Relaxed);
 
-                                    let i = cnt.load(Ordering::Relaxed);
-                                    interaction.create_interaction_response(ctx, |cir| {
-                                        cir.kind(InteractionResponseType::UpdateMessage)
-                                            .interaction_response_data(|m| {
-                                                m.create_embed(|e| create_role_menu_embed(e, &roles, i))
-                                            })
-                                    }).await.unwrap();
-                                    
-                                    i == roles.len()
-                                }
-                                _ => false
+                                let i = cnt.load(Ordering::Relaxed);
+                                interaction.create_interaction_response(ctx, |cir| {
+                                    cir.kind(InteractionResponseType::UpdateMessage)
+                                        .interaction_response_data(|m| {
+                                            m.create_embed(|e| create_role_menu_embed(e, &roles, i))
+                                        })
+                                }).await.unwrap();
+                                
+                                i == roles.len()
                             }
+                            _ => false
                         }
                     }
                     false 
