@@ -1,0 +1,28 @@
+version: "3.9"
+services: 
+    redis:
+        image: redis:latest
+        command: ["redis-server", "--appendonly", "yes"]
+        networks:
+            - net
+        ports: 
+            - "6379:6379"
+        hostname: redis
+        volumes:
+            - db:/data
+    r0le: 
+        image: r0le
+        networks:
+            - net
+        depends_on:
+          - redis
+        environment:
+            TOKEN: ${TOKEN}
+            APPLICATION_ID: ${APPLICATION_ID}
+            REDIS_URL: redis://redis:6379
+
+volumes: 
+    db:
+    
+networks: 
+    net:

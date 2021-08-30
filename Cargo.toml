@@ -7,3 +7,11 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+clap = "3.0.0-beta.2"
+config = "0.11"
+redis = { version = "*", features = ["tokio-comp", "r2d2"] }
+tokio = { version = "1.7", features = ["rt-multi-thread"] }
+serenity = { version = "0.10", features = ["collector", "unstable_discord_api"] }
+r2d2 = "*" 
+futures = "0.3"
+serde_json = "1.0"
