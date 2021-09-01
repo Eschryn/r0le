@@ -1,3 +1,4 @@
+use log::error;
 use serenity::{async_trait, prelude::*, model::prelude::*};
 
 use crate::data::{RedisReactionRoleStore, ReactionRoleStore};
@@ -16,36 +17,47 @@ impl EventHandler for Handler {
             return;
         }
 
-        let rol = Self::get_store(&ctx).await
-            .get(add_reaction.guild_id.unwrap(), add_reaction.channel_id, add_reaction.message_id, add_reaction.emoji);
+        if let Some(guild_id) = add_reaction.guild_id {
+            let rol = Self::get_store(&ctx).await
+                .get(guild_id, add_reaction.channel_id, add_reaction.message_id, add_reaction.emoji);
 
-        ctx.http.add_member_role(add_reaction.guild_id.unwrap().0, add_reaction.user_id.unwrap().0, rol).await.unwrap();
+            match rol {
+                Ok(role) => {
+                    let _ = ctx.http.add_member_role(add_reaction.guild_id.unwrap().0, add_reaction.user_id.unwrap().0, role).await;
+                }
+                Err(error) => error!("server error occurred while trying to assign role to user: {}", error)
+            }
+        }
     }
 
     async fn reaction_remove(&self, ctx: Context, removed_reaction: Reaction) {
         let store = Self::get_store(&ctx).await;
         
         if removed_reaction.user_id == Some(UserId(self.0)) {
-            store.delete(removed_reaction.guild_id.unwrap(), Some(removed_reaction.channel_id), Some(removed_reaction.message_id), Some(removed_reaction.emoji));
+            let _ = store.delete(removed_reaction.guild_id.unwrap(), Some(removed_reaction.channel_id), Some(removed_reaction.message_id), Some(removed_reaction.emoji));
         } else {
             let rol = store.get(removed_reaction.guild_id.unwrap(), removed_reaction.channel_id, removed_reaction.message_id, removed_reaction.emoji);
-        
-            ctx.http.remove_member_role(removed_reaction.guild_id.unwrap().0, removed_reaction.user_id.unwrap().0, rol).await.unwrap();
+            match rol {
+                Ok(role) => {
+                    let _ = ctx.http.remove_member_role(removed_reaction.guild_id.unwrap().0, removed_reaction.user_id.unwrap().0, role).await;
+                }
+                Err(error) => error!("server error occurred while trying to assign role to user: {}", error)
+            }
         }
     }
 
     async fn message_delete(&self, ctx: Context, channel_id: ChannelId, deleted_message_id: MessageId, guild_id: Option<GuildId>) {
-        Self::get_store(&ctx).await
+        let _ = Self::get_store(&ctx).await
             .delete(guild_id.unwrap(), Some(channel_id), Some(deleted_message_id), None);
     }
 
     async fn channel_delete(&self, ctx: Context, channel: &GuildChannel) {
-        Self::get_store(&ctx).await
+        let _ = Self::get_store(&ctx).await
             .delete(channel.guild_id, Some(channel.id), None, None);
     }
 
     async fn guild_delete(&self, ctx: Context, incomplete: GuildUnavailable, _full: Option<Guild>) {
-        Self::get_store(&ctx).await
+        let _ = Self::get_store(&ctx).await
             .delete(incomplete.id, None, None, None);
     }
 }

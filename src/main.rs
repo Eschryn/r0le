@@ -28,7 +28,7 @@ async fn main() {
 
         
     {
-        let store = RedisReactionRoleStore::connect(opts.redis_url.unwrap_or("redis://127.0.0.1".to_string()));
+        let store = RedisReactionRoleStore::connect(opts.redis_url.unwrap_or("redis://127.0.0.1".to_string())).await.unwrap();
         let mut data = client.data.write().await;
 
         data.insert::<RedisReactionRoleStore>(store)
