@@ -33,9 +33,7 @@ impl RedisReactionRoleStore {
 #[derive(Error, Debug)]
 pub enum RedisReactionRoleStoreError {
     #[error(transparent)]
-    RedisError(#[from] RedisError),
-    #[error(transparent)]
-    R2d2Error(#[from] r2d2::Error)
+    RedisError(#[from] RedisError)
 }
 
 #[async_trait]
