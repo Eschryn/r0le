@@ -19,7 +19,7 @@ impl EventHandler for Handler {
 
         if let Some(guild_id) = add_reaction.guild_id {
             let rol = Self::get_store(&ctx).await
-                .get(guild_id, add_reaction.channel_id, add_reaction.message_id, add_reaction.emoji);
+                .get(guild_id, add_reaction.channel_id, add_reaction.message_id, add_reaction.emoji).await;
 
             match rol {
                 Ok(role) => {
@@ -36,7 +36,7 @@ impl EventHandler for Handler {
         if removed_reaction.user_id == Some(UserId(self.0)) {
             let _ = store.delete(removed_reaction.guild_id.unwrap(), Some(removed_reaction.channel_id), Some(removed_reaction.message_id), Some(removed_reaction.emoji));
         } else {
-            let rol = store.get(removed_reaction.guild_id.unwrap(), removed_reaction.channel_id, removed_reaction.message_id, removed_reaction.emoji);
+            let rol = store.get(removed_reaction.guild_id.unwrap(), removed_reaction.channel_id, removed_reaction.message_id, removed_reaction.emoji).await;
             match rol {
                 Ok(role) => {
                     let _ = ctx.http.remove_member_role(removed_reaction.guild_id.unwrap().0, removed_reaction.user_id.unwrap().0, role).await;
@@ -48,17 +48,17 @@ impl EventHandler for Handler {
 
     async fn message_delete(&self, ctx: Context, channel_id: ChannelId, deleted_message_id: MessageId, guild_id: Option<GuildId>) {
         let _ = Self::get_store(&ctx).await
-            .delete(guild_id.unwrap(), Some(channel_id), Some(deleted_message_id), None);
+            .delete(guild_id.unwrap(), Some(channel_id), Some(deleted_message_id), None).await;
     }
 
     async fn channel_delete(&self, ctx: Context, channel: &GuildChannel) {
         let _ = Self::get_store(&ctx).await
-            .delete(channel.guild_id, Some(channel.id), None, None);
+            .delete(channel.guild_id, Some(channel.id), None, None).await;
     }
 
     async fn guild_delete(&self, ctx: Context, incomplete: GuildUnavailable, _full: Option<Guild>) {
         let _ = Self::get_store(&ctx).await
-            .delete(incomplete.id, None, None, None);
+            .delete(incomplete.id, None, None, None).await;
     }
 }
 

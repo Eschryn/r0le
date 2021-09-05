@@ -66,12 +66,12 @@ impl WorkerMenu for ReactionRoleAssignmentMenu {
             .timeout(Duration::from_secs(60 * 5))
             .await
             .enumerate();
-
-        let mut pos = self.role_assignment_state.load(Ordering::Relaxed) - 1;
+            
         while let Some((_, reaction_action)) = reactions.next().await {
             let reaction = reaction_action.as_inner_ref();
 
-            match self.pool.create(reaction.guild_id.unwrap(), reaction.channel_id, reaction.message_id, &reaction.emoji, self.roles[pos]) {
+            let mut pos = self.role_assignment_state.load(Ordering::Relaxed) - 1;
+            match self.pool.create(reaction.guild_id.unwrap(), reaction.channel_id, reaction.message_id, &reaction.emoji, self.roles[pos]).await {
                 Ok(_) => {
                     pos = self.role_assignment_state.fetch_add(1, Ordering::Relaxed);
                     menu.clone().edit(ctx, |m| m.embed(create_role_menu_embed!(&self.roles, pos))).await.unwrap(); 
