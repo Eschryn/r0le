@@ -24,6 +24,8 @@ macro_rules! create_role_menu_embed {
 }
 
 #[command]
+#[description = "setup a reaction role - pass all roles as arguments"]
+#[required_permissions("ADMINISTRATOR")]
 async fn setup(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
     let roles: Vec<RoleId> = args.iter::<RoleId>().filter_map(|r| r.ok()).collect();
     let pool = {
@@ -57,7 +59,7 @@ async fn setup(ctx: &Context, msg: &Message, mut args: Args) -> CommandResult {
 
 #[async_trait]
 impl WorkerMenu for ReactionRoleAssignmentMenu {
-
+    /// This function collects all reactions and stores them with the assigned role in the database
     async fn process(&self, ctx: &Context, menu: &Message) {
         let mut reactions = self.guild.await_reactions(ctx)
             .author_id(self.author)
@@ -93,6 +95,7 @@ impl WorkerMenu for ReactionRoleAssignmentMenu {
         }
     }
     
+    /// this function processes menu events like skip and cancel
     async fn ui_event(&self, ctx: &Context, interaction: &Arc<MessageComponentInteraction>) -> bool {
         match interaction.data.custom_id.parse().unwrap() {
             Self::CANCEL_ID => {
