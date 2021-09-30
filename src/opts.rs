@@ -7,11 +7,11 @@ use clap::{AppSettings, Clap};
 pub struct Opts {
     /// bot token - required to start the bot
     #[clap(short, long)]
-    pub token: Option<String>,
+    pub token: String,
     /// application id - required to start the bot
     #[clap(short, long)]
-    pub application_id: Option<u64>,
-    /// redis url - required to start the bot
+    pub application_id: u64,
+    /// redis url
     #[clap(short, long)]
     pub redis_url: Option<String>
 }

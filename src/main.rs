@@ -6,7 +6,7 @@ mod opts;
 use clap::Clap;
 
 use data::RedisReactionRoleStore;
-use serenity::{framework::standard::StandardFramework, prelude::*};
+use serenity::{client::bridge::gateway::GatewayIntents, framework::standard::StandardFramework, prelude::*};
 
 #[tokio::main]
 async fn main() {
@@ -17,12 +17,13 @@ async fn main() {
         .group(&commands::REACTIONROLES_GROUP)
         .help(&commands::MY_HELP);
 
-    let token = opts.token.unwrap();
-    let application_id = opts.application_id.unwrap();
+    let token = opts.token;
+    let application_id = opts.application_id;
     let mut client = Client::builder(token)
         .event_handler(event_handler::Handler(application_id))
         .application_id(application_id)
         .framework(framework)
+        .intents(GatewayIntents::all())
         .await
         .expect("Error creating client");
 
