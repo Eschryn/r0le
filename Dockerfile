@@ -1,6 +1,12 @@
 FROM rust:1.54 as builder
 WORKDIR /usr/src/r0le
-COPY . .
+# cache the build dependencies
+RUN mkdir src 
+COPY dummy.rs src/main.rs
+COPY Cargo.toml ./
+RUN cargo build --release
+# copy the source and build
+COPY ./src ./src
 RUN cargo install --path .
 
 FROM debian:buster-slim
